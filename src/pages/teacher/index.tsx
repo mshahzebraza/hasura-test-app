@@ -1,4 +1,6 @@
+import apolloClient from '@/lib/apolloClient';
 import { dummyTeacherData } from '@/mockData';
+import { gql } from '@apollo/client';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { Box, Button, Heading, Menu, MenuButton, MenuItem, MenuList, Table, TableContainer, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import { GetServerSideProps } from 'next';
@@ -88,33 +90,35 @@ export default function TeacherDashboard({ teachersData }: TeacherDashboardProps
     );
 }
 
+const FETCH_ALL_TEACHERS = gql`
+    query fetchAllTeachers {
+        teachers {
+            id
+            name
+            subjects
+        }
+    }
+`;
+
 // This function will run on the server
 export const getServerSideProps: GetServerSideProps = async () => {
+    const { data, loading, error } = await apolloClient.query({
+        query: FETCH_ALL_TEACHERS,
+    })
 
-    const data = await fetch(process.env.NEXT_PUBLIC_HASURA_URL as string, {
-        headers: {
-            'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET as string,
-            'Content-Type': 'application/json',
-        },
-        method: 'POST',
-        body: JSON.stringify({
-            query: `query fetchAllTeachers {
-                teachers {
-                  id
-                  name
-                  subjects
-                }
-              }`,
-        }),
-    });
-    const response = await data.json();
+    if (error) {
+        console.error(`Error fetching students: ${error}`);
+        return {
+            props: {
+                teachersData: []
+            },
+        };
+    }
 
-    // transform the response into the shape of the studentData
-    const teachersData = response.data.teachers;
 
     return {
         props: {
-            teachersData
+            teachersData: data.teachers
         },
     };
 }

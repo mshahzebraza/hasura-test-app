@@ -1,0 +1,7 @@
+mutation editStudent($studentId: Int, $teacherId: Int) {
+  update_students(where: {id: {_eq: $studentId}}, _set: {teacher_id: $teacherId}) {
+    returning {
+      teacher_id
+    }
+  }
+}

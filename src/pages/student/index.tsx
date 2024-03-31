@@ -20,21 +20,25 @@ import { GetServerSideProps } from 'next';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
 import { dummyStudentData } from '@/mockData';
+import StudentList from '@/components/StudentList';
+import { gql, useQuery } from '@apollo/client';
+import apolloClient from '@/lib/apolloClient';
 
-type IStudent = {
+export type IStudent = {
     id: number;
     name: string;
     grade: number;
 };
+
 
 interface StudentDashboardProps {
     studentsData: IStudent[]; // Replace 'any' with the type of your student data
 }
 
 // Refreshing is not happening
-export default function StudentDashboard({ studentsData }: StudentDashboardProps) {
-
+export default function StudentDashboard({ studentsData = [] }: StudentDashboardProps) {
     const router = useRouter();
+
     return (
         <Box
             display="flex"
@@ -62,81 +66,41 @@ export default function StudentDashboard({ studentsData }: StudentDashboardProps
                 </Box>
             </Box>
 
-            <TableContainer w={'100%'}>
-                <Table variant='simple'>
-                    <Thead>
-                        <Tr>
-                            <Th>Name</Th>
-                            <Th>Grade</Th>
-                            <Th>Actions</Th>
-                        </Tr>
-                    </Thead>
-                    <Tbody>
-                        {/* Map over the studentData array and create a new table row for each student */}
-                        {studentsData.map((student) => (
-                            <Tr key={student.id}>
-                                <Td>{student.name}</Td>
-                                <Td>{student.grade}</Td>
-                                <Td>
-                                    <Menu>
-                                        <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                                            Actions
-                                        </MenuButton>
-                                        <MenuList>
-                                            <MenuItem onClick={() => router.push(`/student/edit/${student.id}`)}>Edit</MenuItem>
-                                            <MenuItem
-                                                onClick={() => {
-                                                    dummyStudentData.splice(
-                                                        dummyStudentData.findIndex((s) => s.id === student.id),
-                                                        1
-                                                    );
-                                                }}
-                                            >Delete</MenuItem>
-                                        </MenuList>
-                                    </Menu>
-                                </Td>
-                            </Tr>
-                        ))}
-                    </Tbody>
-                </Table>
-            </TableContainer>
+            <StudentList studentsData={studentsData} />
         </Box>
     );
 }
 
 
+const FETCH_ALL_STUDENTS = gql`
+    query fetchAllStudents {
+        students {
+            id
+            name
+            grade
+        }
+    }
+`;
+
 // This function will run on the server
 export const getServerSideProps: GetServerSideProps = async () => {
+    const { data, loading, error } = await apolloClient.query({
+        query: FETCH_ALL_STUDENTS,
+    })
 
-    const data = await fetch(process.env.NEXT_PUBLIC_HASURA_URL as string, {
-        headers: {
-            'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET as string,
-            'Content-Type': 'application/json',
-        },
-        method: 'POST',
-        body: JSON.stringify({
-            query: `query fetchAllStudents {
-                students {
-                  id
-                  name
-                  grade
-                }
-              }`,
-        }),
-    });
-    const response = await data.json();
+    if (error) {
+        console.error(`Error fetching students: ${error}`);
+        return {
+            props: {
+                studentsData: []
+            },
+        };
+    }
 
-    // transform the response into the shape of the studentData
-    const studentsData = response.data.students;
-
-
-    // Fetch student data from an API
-    // const studentData = dummyStudentData;
-
-    // Pass the student
+    // Pass the students
     return {
         props: {
-            studentsData
+            studentsData: data.students
         },
     };
 }

@@ -1,0 +1,7 @@
+mutation insertNewStudent ($grade:Int, $name: String, $teacherId:Int) {
+  insert_students(objects: {grade: $grade, name: $name, teacher_id: $teacherId}) {
+    returning {
+      id
+    }
+  }
+}

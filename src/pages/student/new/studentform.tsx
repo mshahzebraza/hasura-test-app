@@ -7,10 +7,11 @@ import {
     Button,
     Select,
 } from '@chakra-ui/react';
+import { gql, useMutation } from '@apollo/client';
 
 type IStudentForm = {
     name: string;
-    teacher: string;
+    teacher: number;
     grade: number;
 };
 
@@ -18,25 +19,42 @@ type IStudentFormProps = {
     prevData?: IStudentForm;
 };
 
+const CREATE_STUDENT = gql`
+mutation insertNewStudent ($grade:Int, $name: String, $teacherId:Int) {
+  insert_students(objects: {grade: $grade, name: $name, teacher_id: $teacherId}) {
+    returning {
+      id
+    }
+  }
+}`;
+
 export default function StudentForm(props: IStudentFormProps) {
     const { prevData = {} } = props;
     const {
         handleSubmit,
         register,
+        reset,
         formState: { errors, isSubmitting },
     } = useForm<IStudentForm>({
         defaultValues: prevData
     })
 
-    function onSubmit(values: IStudentForm) {
-        console.log(`🚀 ~ onSubmit ~ values:`, values)
-        // return new Promise((resolve) => {
-        //     setTimeout(() => {
-        //         alert(JSON.stringify(values, null, 2))
-        //         resolve('Submitted successfully')
-        //     }, 3000)
-        // })
+    const [createStudent, { data, loading, error }] = useMutation(CREATE_STUDENT);
+    if (loading) return 'Submitting...';
+    if (error) return `Submission error! ${error.message}`;
+
+
+    async function onSubmit(values: IStudentForm) {
+        await createStudent({
+            variables: {
+                grade: values.grade,
+                name: values.name,
+                teacherId: values.teacher
+            }
+        });
+        reset()
     }
+
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
 
@@ -86,9 +104,8 @@ export default function StudentForm(props: IStudentFormProps) {
                 // multiple
                 >
 
-                    <option value='teacher1'>Teacher 1</option>
-                    <option value='teacher2'>Teacher 2</option>
-                    <option value='teacher3'>Teacher 3</option>
+                    <option value={1}>Papa</option>
+                    <option value={2}>Ammi</option>
                 </Select>
                 <FormErrorMessage>
                     {errors.teacher && errors.teacher.message}
