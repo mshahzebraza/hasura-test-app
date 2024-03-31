@@ -1,9 +1,21 @@
 import { dummyTeacherData } from '@/mockData';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { Box, Button, Heading, Menu, MenuButton, MenuItem, MenuList, Table, TableContainer, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
+import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 
-export default function TeacherDashboard() {
+
+type ITeacher = {
+    id: number;
+    name: string;
+    subjects: string[];
+};
+
+interface TeacherDashboardProps {
+    teachersData: ITeacher[]; // Replace 'any' with the type of your student data
+}
+
+export default function TeacherDashboard({ teachersData }: TeacherDashboardProps) {
     const router = useRouter();
 
     return (
@@ -44,7 +56,7 @@ export default function TeacherDashboard() {
                     </Thead>
                     <Tbody>
                         {/* Map over the teacherData array and create a new table row for each teacher */}
-                        {dummyTeacherData.map((teacher) => (
+                        {teachersData.map((teacher) => (
                             <Tr key={teacher.id}>
                                 <Td>{teacher.name}</Td>
                                 <Td>{teacher.subjects.join(', ')}</Td>
@@ -74,4 +86,35 @@ export default function TeacherDashboard() {
             </TableContainer>
         </Box>
     );
+}
+
+// This function will run on the server
+export const getServerSideProps: GetServerSideProps = async () => {
+
+    const data = await fetch(process.env.NEXT_PUBLIC_HASURA_URL as string, {
+        headers: {
+            'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET as string,
+            'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify({
+            query: `query fetchAllTeachers {
+                teachers {
+                  id
+                  name
+                  subjects
+                }
+              }`,
+        }),
+    });
+    const response = await data.json();
+
+    // transform the response into the shape of the studentData
+    const teachersData = response.data.teachers;
+
+    return {
+        props: {
+            teachersData
+        },
+    };
 }

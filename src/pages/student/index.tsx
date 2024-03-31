@@ -28,12 +28,11 @@ type IStudent = {
 };
 
 interface StudentDashboardProps {
-    studentData: IStudent[]; // Replace 'any' with the type of your student data
+    studentsData: IStudent[]; // Replace 'any' with the type of your student data
 }
 
 // Refreshing is not happening
-export default function StudentDashboard(/* { studentData }: StudentDashboardProps */) {
-    // Use the studentData prop here
+export default function StudentDashboard({ studentsData }: StudentDashboardProps) {
 
     const router = useRouter();
     return (
@@ -74,11 +73,10 @@ export default function StudentDashboard(/* { studentData }: StudentDashboardPro
                     </Thead>
                     <Tbody>
                         {/* Map over the studentData array and create a new table row for each student */}
-                        {dummyStudentData.map((student) => (
+                        {studentsData.map((student) => (
                             <Tr key={student.id}>
                                 <Td>{student.name}</Td>
                                 <Td>{student.grade}</Td>
-                                {/* New options for multiselect */}
                                 <Td>
                                     <Menu>
                                         <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
@@ -104,4 +102,41 @@ export default function StudentDashboard(/* { studentData }: StudentDashboardPro
             </TableContainer>
         </Box>
     );
+}
+
+
+// This function will run on the server
+export const getServerSideProps: GetServerSideProps = async () => {
+
+    const data = await fetch(process.env.NEXT_PUBLIC_HASURA_URL as string, {
+        headers: {
+            'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET as string,
+            'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify({
+            query: `query fetchAllStudents {
+                students {
+                  id
+                  name
+                  grade
+                }
+              }`,
+        }),
+    });
+    const response = await data.json();
+
+    // transform the response into the shape of the studentData
+    const studentsData = response.data.students;
+
+
+    // Fetch student data from an API
+    // const studentData = dummyStudentData;
+
+    // Pass the student
+    return {
+        props: {
+            studentsData
+        },
+    };
 }
