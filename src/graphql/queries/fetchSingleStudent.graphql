@@ -1,6 +1,0 @@
-query fetchSingleStudent($userId: uuid!) {
-  users_by_pk(id: $userId) {
-    id
-    name
-  }
-}

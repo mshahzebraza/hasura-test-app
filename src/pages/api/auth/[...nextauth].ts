@@ -2,7 +2,7 @@
 import NextAuth, { AuthOptions } from 'next-auth';
 import GoogleProvider from "next-auth/providers/google";
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { checkUserExists } from '@/utils/checkUserExists';
+import { checkUserExists } from '@/lib/checkUserExists.helper';
 
 export const authOptions: AuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
@@ -22,6 +22,14 @@ export const authOptions: AuthOptions = {
     ],
     callbacks: {
         async signIn({ account, profile, user, credentials, email }) {
+
+            // TODO: Get the user role from the database and append it to the token/user object
+            // get the user role from the database and append it to the token/user object
+            // const validUserRole = await getUserRole(user.email);
+            // if (!validUserRole) return false;
+            // user.role = validUserRole; // TODO: Later add the "X-Hasura-Role" to the token
+            // TODO: GOOD TO HAVE: Add the "X-Hasura-User-ID" to the token as well for permission checks
+
 
             // query the database to check if the user exists and is assigned a role by the admin. If not, sign-in is rejected.
             const isUserAllowedToSignIn = await checkUserExists((profile as any).email);
@@ -57,9 +65,9 @@ export const authOptions: AuthOptions = {
         },
         async session({ session, token }) {
             // Send properties to the client, like an access_token from a provider.
-            // (session as any).accessToken = (token as any).accessToken;
+            (session as any).accessToken = (token as any).accessToken;
 
-            // (session as any).user.role = token.userRole; // Make user role available on the session
+            (session as any).user.role = token.userRole; // Make user role available on the session
             return session;
         },
     },

@@ -1,7 +1,0 @@
-query fetchAllTeachers {
-  teachers {
-    id
-    name
-    subjects
-  }
-}

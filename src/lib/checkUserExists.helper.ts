@@ -16,8 +16,14 @@ export async function checkUserExists(email: string) {
     try {
         const { data, loading, error } = await apolloClient.query<CheckUserExistsResponse>({
             query: GET_USER_BY_EMAIL_QUERY,
-            variables: { email }
+            variables: { email },
+            context: {
+                headers: {
+                    'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET as string
+                }
+            }
         })
+        console.log(`🚀 ~ checkUserExists ~ process.env.HASURA_ADMIN_SECRET:`, process.env.HASURA_ADMIN_SECRET)
 
         if (data.users.length > 0) {
             return data.users[0];
