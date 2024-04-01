@@ -1,7 +1,0 @@
-query fetchAllStudents {
-  students {
-    id
-    name
-    grade
-  }
-}

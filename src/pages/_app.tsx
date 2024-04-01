@@ -1,4 +1,4 @@
-import apolloClient from "@/lib/apolloClient";
+import apolloClient from "@/lib/apollo.client";
 import "@/styles/globals.css";
 import theme from "@/styles/theme";
 import { ApolloProvider } from "@apollo/client";

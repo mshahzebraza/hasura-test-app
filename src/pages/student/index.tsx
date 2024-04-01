@@ -1,28 +1,12 @@
-import {
-    Table,
-    Thead,
-    Tbody,
-    Tfoot,
-    Tr,
-    Th,
-    Td,
-    TableCaption,
-    TableContainer,
-    Button,
-    Menu,
-    MenuButton,
-    MenuItem,
-    MenuList,
-    Box,
-    Heading,
-} from '@chakra-ui/react';
-import { GetServerSideProps } from 'next';
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import { useRouter } from 'next/router';
-import { dummyStudentData } from '@/mockData';
+import Layout from '@/components/Layout';
 import StudentList from '@/components/StudentList';
-import { gql, useQuery } from '@apollo/client';
-import apolloClient from '@/lib/apolloClient';
+import { FETCH_ALL_STUDENTS } from '@/graphql/queries/student.query';
+import apolloClient from '@/lib/apollo.client';
+import { applicationPaths } from '@/lib/paths.constants';
+import { gql } from '@apollo/client';
+import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { ListPageHeader } from '../../components/ListPageHeader';
 
 export type IStudent = {
     id: number;
@@ -40,50 +24,24 @@ export default function StudentDashboard({ studentsData = [] }: StudentDashboard
     const router = useRouter();
 
     return (
-        <Box
-            display="flex"
-            flexDirection={'column'}
-            justifyContent="center"
-            alignItems="center"
-            h="100vh"
-            maxW={'50rem'}
-            margin={'0 auto'}
-        >
-            {/* Header Row With Title and a button */}
-            <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                w="100%"
-                p={4}
-                mb={4}
-            >
-                <Box>
-                    <Heading>Student Dashboard</Heading>
-                </Box>
-                <Box>
-                    <Button colorScheme="blue" onClick={() => router.push('/student/new')} >Add Student</Button>
-                </Box>
-            </Box>
-
-            <StudentList studentsData={studentsData} />
-        </Box>
+        <Layout >
+            <ListPageHeader
+                title="Student Dashboard"
+                button={{ text: 'Add Student', redirectPath: applicationPaths.newStudent }}
+            />
+            <StudentList
+                studentsData={studentsData}
+                onDelete={(id: number) => { console.log(`Delete student with id: ${id}`) }}
+                onEdit={(id: number) => { console.log(`Edit student with id: ${id}`) }}
+            />
+        </Layout>
     );
 }
 
 
-const FETCH_ALL_STUDENTS = gql`
-    query fetchAllStudents {
-        students {
-            id
-            name
-            grade
-        }
-    }
-`;
-
 // This function will run on the server
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getServerSideProps: GetServerSideProps = async (context: any) => {
+
     const { data, loading, error } = await apolloClient.query({
         query: FETCH_ALL_STUDENTS,
     })

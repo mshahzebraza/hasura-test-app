@@ -1,4 +1,4 @@
-import StudentForm from '@/pages/student/new/studentform'
+import StudentForm from '@/pages/student/new/CreateStudentForm'
 import TeacherForm from '@/pages/teacher/new/teacherform'
 import { Box } from '@chakra-ui/react'
 import React from 'react'

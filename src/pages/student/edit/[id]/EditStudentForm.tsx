@@ -1,62 +1,53 @@
-import { useForm } from 'react-hook-form'
+import { useEditStudentForm } from '@/pages/student/edit/[id]/useEditStudentForm';
 import {
+    Button,
+    FormControl,
     FormErrorMessage,
     FormLabel,
-    FormControl,
     Input,
-    Button,
     Select,
 } from '@chakra-ui/react';
-import { gql, useMutation } from '@apollo/client';
+import { useRouter } from 'next/router';
 
-type IStudentForm = {
+export type IStudentForm = {
     name: string;
     teacher: number;
     grade: number;
 };
 
 type IStudentFormProps = {
-    prevData?: IStudentForm;
+    editId: number;
 };
 
-const CREATE_STUDENT = gql`
-mutation insertNewStudent ($grade:Int, $name: String, $teacherId:Int) {
-  insert_students(objects: {grade: $grade, name: $name, teacher_id: $teacherId}) {
-    returning {
-      id
-    }
-  }
-}`;
+export default function EditStudentForm(props: IStudentFormProps) {
+    const { editId } = props;
 
-export default function StudentForm(props: IStudentFormProps) {
-    const { prevData = {} } = props;
     const {
-        handleSubmit,
+        errors,
+        formSubmitHandler,
+        isSubmitting,
         register,
-        reset,
-        formState: { errors, isSubmitting },
-    } = useForm<IStudentForm>({
-        defaultValues: prevData
+        mutationResponse,
+        mutationError,
+        mutationLoading
+    } = useEditStudentForm({
+        editId,
+        onSubmit: (values, reset) => {
+            console.log(values);
+            reset();
+        },
+        onError: (error) => {
+            console.error(error);
+        }
     })
 
-    const [createStudent, { data, loading, error }] = useMutation(CREATE_STUDENT);
-    if (loading) return 'Submitting...';
-    if (error) return `Submission error! ${error.message}`;
 
+    if (mutationLoading) return 'Submitting...';
+    if (mutationError) return `Submission error! ${mutationError.message}`;
 
-    async function onSubmit(values: IStudentForm) {
-        await createStudent({
-            variables: {
-                grade: values.grade,
-                name: values.name,
-                teacherId: values.teacher
-            }
-        });
-        reset()
-    }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={formSubmitHandler}>
 
             {/* Name */}
             <FormControl isInvalid={!!errors.name}>
@@ -92,13 +83,13 @@ export default function StudentForm(props: IStudentFormProps) {
             </FormControl>
 
             {/* Teachers */}
-            <FormControl isInvalid={!!errors.teacher}>
+            <FormControl isInvalid={!!errors.teacher_id}>
                 <FormLabel htmlFor='teachers'>Teachers</FormLabel>
 
                 <Select
                     id='teachers'
                     placeholder='Select teachers'
-                    {...register('teacher', {
+                    {...register('teacher_id', {
                         required: 'This is required',
                     })}
                 // multiple
@@ -108,7 +99,7 @@ export default function StudentForm(props: IStudentFormProps) {
                     <option value={2}>Ammi</option>
                 </Select>
                 <FormErrorMessage>
-                    {errors.teacher && errors.teacher.message}
+                    {errors.teacher_id && errors.teacher_id.message}
                 </FormErrorMessage>
             </FormControl>
 

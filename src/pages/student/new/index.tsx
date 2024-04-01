@@ -1,8 +1,10 @@
-import StudentForm from '@/pages/student/new/studentform'
+import CreateStudentForm from '@/pages/student/new/CreateStudentForm'
+import StudentForm from '@/pages/student/new/CreateStudentForm'
 import { Box } from '@chakra-ui/react'
 import React from 'react'
 
 const CreateStudent = () => {
+
     return (
         <Box
             display="flex"
@@ -13,7 +15,7 @@ const CreateStudent = () => {
             maxW={'50rem'}
             margin={'0 auto'}
         >
-            <StudentForm />
+            <CreateStudentForm />
         </Box>
     )
 }

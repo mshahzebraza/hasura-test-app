@@ -1,18 +1,17 @@
-import { dummyStudentData } from '@/mockData';
 import { IStudent } from '@/pages/student';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { TableContainer, Table, Thead, Tr, Th, Tbody, Td, Menu, MenuButton, Button, MenuList, MenuItem, Box } from '@chakra-ui/react';
-import router from 'next/router';
 import React from 'react'
-
-
 
 interface IStudentList {
     studentsData: IStudent[]; // Replace 'any' with the type of your student data
+    onDelete: (id: number) => void;
+    onEdit: (id: number) => void;
 }
 
 const StudentList = (props: IStudentList) => {
-    const { studentsData } = props;
+    const { studentsData, onDelete, onEdit } = props;
+
     return (
         <TableContainer w={'100%'}>
             <Table variant='simple'>
@@ -35,15 +34,8 @@ const StudentList = (props: IStudentList) => {
                                         Actions
                                     </MenuButton>
                                     <MenuList>
-                                        <MenuItem onClick={() => router.push(`/student/edit/${student.id}`)}>Edit</MenuItem>
-                                        <MenuItem
-                                            onClick={() => {
-                                                dummyStudentData.splice(
-                                                    dummyStudentData.findIndex((s) => s.id === student.id),
-                                                    1
-                                                );
-                                            }}
-                                        >Delete</MenuItem>
+                                        <MenuItem onClick={() => onEdit(student.id)}>Edit</MenuItem>
+                                        <MenuItem onClick={() => onDelete(student.id)}>Delete</MenuItem>
                                     </MenuList>
                                 </Menu>
                             </Td>

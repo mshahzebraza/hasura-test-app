@@ -4,6 +4,13 @@
 - query the list of teachers
 - query the list of students
 
+
+
+## Queries
+- authentication/authorization in Hasura and Next (need to use next-auth?)
+- apollo client?
+- 
+
 # Views
 
 - app starts
